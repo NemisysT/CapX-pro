@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
-interface StockHolding {
+interface StockData {
   symbol: string
   quantity: number
   purchasePrice: number
@@ -12,33 +12,60 @@ interface StockHolding {
 }
 
 export default function PortfolioValueTracker() {
-  const [holdings, setHoldings] = useState<StockHolding[]>([
-    { symbol: 'AAPL', quantity: 10, purchasePrice: 150, currentPrice: 150 },
-    { symbol: 'GOOGL', quantity: 5, purchasePrice: 2500, currentPrice: 2500 },
-    { symbol: 'MSFT', quantity: 15, purchasePrice: 300, currentPrice: 300 },
-  ])
-
+  const [stocks, setStocks] = useState<StockData[]>([])
   const [totalValue, setTotalValue] = useState(0)
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setHoldings(prevHoldings => 
-        prevHoldings.map(holding => ({
-          ...holding,
-          currentPrice: holding.currentPrice * (1 + (Math.random() - 0.5) * 0.02) // Simulate price changes
-        }))
-      )
-    }, 5000) // Update every 5 seconds
+    const socket = new WebSocket('wss://ws.finnhub.io?token=ctra2qpr01qhb16mdk1gctra2qpr01qhb16mdk20')
 
-    return () => clearInterval(interval)
+    socket.onopen = () => {
+      console.log('WebSocket connection opened.')
+      // Subscribe to stock symbols
+      const initialStocks = [
+        { symbol: 'AAPL', quantity: 10, purchasePrice: 150 },
+        { symbol: 'GOOGL', quantity: 5, purchasePrice: 2500 },
+        { symbol: 'MSFT', quantity: 15, purchasePrice: 300 },
+      ]
+      setStocks(initialStocks)
+      initialStocks.forEach((stock) => {
+        socket.send(JSON.stringify({ type: 'subscribe', symbol: stock.symbol }))
+      })
+    }
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data)
+      if (data.type === 'trade') {
+        const updates = data.data.reduce((acc: Record<string, number>, trade: { s: string; p: number }) => {
+          acc[trade.s] = trade.p
+          return acc
+        }, {})
+
+        setStocks((prevStocks) =>
+          prevStocks.map((stock) => ({
+            ...stock,
+            currentPrice: updates[stock.symbol] || stock.currentPrice || stock.purchasePrice,
+          }))
+        )
+      }
+    }
+
+    socket.onerror = (error) => {
+      console.error('WebSocket error:', error)
+    }
+
+    socket.onclose = () => {
+      console.log('WebSocket connection closed.')
+    }
+
+    return () => socket.close()
   }, [])
 
   useEffect(() => {
-    const newTotalValue = holdings.reduce((total, holding) => 
-      total + holding.quantity * holding.currentPrice, 0
+    const newTotalValue = stocks.reduce((total, stock) =>
+      total + stock.quantity * (stock.currentPrice || stock.purchasePrice), 0
     )
     setTotalValue(newTotalValue)
-  }, [holdings])
+  }, [stocks])
 
   return (
     <div className="space-y-6">
@@ -68,15 +95,16 @@ export default function PortfolioValueTracker() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {holdings.map((holding) => {
-                const value = holding.quantity * holding.currentPrice
-                const gainLoss = value - (holding.quantity * holding.purchasePrice)
+              {stocks.map((stock) => {
+                const currentPrice = stock.currentPrice || stock.purchasePrice
+                const value = stock.quantity * currentPrice
+                const gainLoss = value - (stock.quantity * stock.purchasePrice)
                 return (
-                  <TableRow key={holding.symbol}>
-                    <TableCell>{holding.symbol}</TableCell>
-                    <TableCell>{holding.quantity}</TableCell>
-                    <TableCell>${holding.purchasePrice.toFixed(2)}</TableCell>
-                    <TableCell>${holding.currentPrice.toFixed(2)}</TableCell>
+                  <TableRow key={stock.symbol}>
+                    <TableCell>{stock.symbol}</TableCell>
+                    <TableCell>{stock.quantity}</TableCell>
+                    <TableCell>${stock.purchasePrice.toFixed(2)}</TableCell>
+                    <TableCell>${currentPrice.toFixed(2)}</TableCell>
                     <TableCell>${value.toFixed(2)}</TableCell>
                     <TableCell className={gainLoss >= 0 ? 'text-green-600' : 'text-red-600'}>
                       ${gainLoss.toFixed(2)}
@@ -91,4 +119,3 @@ export default function PortfolioValueTracker() {
     </div>
   )
 }
-
