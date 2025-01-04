@@ -12,7 +12,7 @@ export default function Sidebar() {
       </div>
       <ul className="flex flex-col py-4">
         {[
-          { icon: Home, text: "Dashboard", link:'/'},
+          { icon: Home, text: "Dashboard", link:'/dashboard'},
           { icon: PieChart, text: "Stock Holding",link:'/Stock-holdings' },
           { icon: BarChart3, text: "Track your Portfolio", link:'/portfolio'},
           

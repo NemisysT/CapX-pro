@@ -4,32 +4,75 @@ import { useState } from 'react'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
-export default function AddStockHoldingForm() {
+const AVAILABLE_STOCKS = [
+  { symbol: 'AAPL', name: 'Apple Inc.' },
+  { symbol: 'GOOGL', name: 'Alphabet Inc.' },
+  { symbol: 'MSFT', name: 'Microsoft Corporation' },
+  { symbol: 'AMZN', name: 'Amazon.com Inc.' },
+  { symbol: 'TSLA', name: 'Tesla Inc.' },
+]
+
+export default function AddStockHoldingForm({ onStockAdded }: { onStockAdded: () => void }) {
   const [symbol, setSymbol] = useState('')
   const [quantity, setQuantity] = useState('')
   const [purchasePrice, setPurchasePrice] = useState('')
+  const [loading, setLoading] = useState(false)
+  
+  const supabase = createClientComponentClient()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Here you would typically send this data to your backend or state management solution
-    console.log('New stock holding:', { symbol, quantity, purchasePrice })
-    // Reset form
-    setSymbol('')
-    setQuantity('')
-    setPurchasePrice('')
+    setLoading(true)
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) throw new Error('No user found')
+
+      const { error } = await supabase
+        .from('stock_holdings')
+        .insert([
+          {
+            user_id: user.id,
+            symbol,
+            quantity: parseInt(quantity),
+            purchase_price: parseFloat(purchasePrice)
+          }
+        ])
+
+      if (error) throw error
+
+      // Reset form
+      setSymbol('')
+      setQuantity('')
+      setPurchasePrice('')
+      onStockAdded() // Refresh the list
+    } catch (error) {
+      console.error('Error adding stock:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label htmlFor="symbol">Symbol</Label>
-        <Input
-          id="symbol"
-          value={symbol}
-          onChange={(e) => setSymbol(e.target.value)}
-          required
-        />
+        <Label htmlFor="symbol">Stock</Label>
+        <Select value={symbol} onValueChange={setSymbol}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a stock" />
+          </SelectTrigger>
+          <SelectContent>
+            {AVAILABLE_STOCKS.map((stock) => (
+              <SelectItem key={stock.symbol} value={stock.symbol}>
+                {stock.symbol} - {stock.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="quantity">Quantity</Label>
@@ -42,7 +85,7 @@ export default function AddStockHoldingForm() {
         />
       </div>
       <div>
-        <Label htmlFor="purchasePrice">Purchase Price</Label>
+        <Label htmlFor="purchasePrice">Purchase Price ($)</Label>
         <Input
           id="purchasePrice"
           type="number"
@@ -52,7 +95,9 @@ export default function AddStockHoldingForm() {
           required
         />
       </div>
-      <Button type="submit">Add Stock Holding</Button>
+      <Button type="submit" disabled={loading}>
+        {loading ? 'Adding...' : 'Add Stock Holding'}
+      </Button>
     </form>
   )
 }

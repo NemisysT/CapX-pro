@@ -1,13 +1,69 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import EmptyStateHandler from "@/components/shared/EmptyStateHandler"
 
-const transactions = [
-  { type: 'Buy', asset: 'AAPL', amount: '$1,000', date: '2023-06-01' },
-  { type: 'Sell', asset: 'GOOGL', amount: '$1,500', date: '2023-05-28' },
-  { type: 'Buy', asset: 'MSFT', amount: '$800', date: '2023-05-25' },
-]
+interface Transaction {
+  id: string
+  symbol: string
+  quantity: number
+  purchase_price: number
+  created_at: string
+}
 
 export default function RecentTransactions() {
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [loading, setLoading] = useState(true)
+  const supabase = createClientComponentClient()
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        const { data } = await supabase
+          .from('stock_holdings')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(5)
+
+        if (data) {
+          setTransactions(data)
+        }
+        setLoading(false)
+      } catch (error) {
+        console.error('Error fetching transactions:', error)
+      }
+    }
+
+    fetchTransactions()
+    const interval = setInterval(fetchTransactions, 60000) // Update every minute
+
+    return () => clearInterval(interval)
+  }, [])
+
+  if (loading) return <div>Loading...</div>
+
+  if (!loading && transactions.length === 0) {
+    return (
+      <div className="w-full xl:w-2/3 px-6 py-3">
+        <Card>
+          <CardContent>
+            <EmptyStateHandler 
+              title="No Recent Transactions"
+              message="Add some stocks to see your transaction history"
+            />
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full xl:w-2/3 px-6 py-3">
       <Card>
@@ -16,20 +72,20 @@ export default function RecentTransactions() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {transactions.map((transaction, index) => (
-              <div key={index} className="flex items-center">
-                <div className={`rounded-full p-2 ${transaction.type === 'Buy' ? 'bg-green-100' : 'bg-red-100'} mr-4`}>
-                  {transaction.type === 'Buy' ? (
-                    <ArrowUpRight className={`h-4 w-4 ${transaction.type === 'Buy' ? 'text-green-500' : 'text-red-500'}`} />
-                  ) : (
-                    <ArrowDownRight className={`h-4 w-4 ${transaction.type === 'Buy' ? 'text-green-500' : 'text-red-500'}`} />
-                  )}
+            {transactions.map((transaction) => (
+              <div key={transaction.id} className="flex items-center">
+                <div className="rounded-full p-2 bg-green-100 mr-4">
+                  <ArrowUpRight className="h-4 w-4 text-green-500" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium">{transaction.asset}</p>
-                  <p className="text-xs text-muted-foreground">{transaction.date}</p>
+                  <p className="text-sm font-medium">{transaction.symbol}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(transaction.created_at).toLocaleDateString()}
+                  </p>
                 </div>
-                <div className="text-sm font-medium">{transaction.amount}</div>
+                <div className="text-sm font-medium">
+                  ${(transaction.quantity * transaction.purchase_price).toFixed(2)}
+                </div>
               </div>
             ))}
           </div>
