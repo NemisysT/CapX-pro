@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowUpRight, ArrowDownRight } from 'lucide-react'
+
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import EmptyStateHandler from "@/components/shared/EmptyStateHandler"
 
@@ -74,9 +74,7 @@ export default function RecentTransactions() {
           <div className="space-y-4">
             {transactions.map((transaction) => (
               <div key={transaction.id} className="flex items-center">
-                <div className="rounded-full p-2 bg-green-100 mr-4">
-                  <ArrowUpRight className="h-4 w-4 text-green-500" />
-                </div>
+                
                 <div className="flex-1">
                   <p className="text-sm font-medium">{transaction.symbol}</p>
                   <p className="text-xs text-muted-foreground">

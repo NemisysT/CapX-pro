@@ -28,9 +28,11 @@ export default function PerformanceChart() {
           .select('*')
           .eq('user_id', user.id)
 
-        if (!holdings || holdings.length === 0) return
+        if (!holdings || holdings.length === 0) {
+          setLoading(false)
+          return
+        }
 
-        // Get current prices for all holdings
         const currentValues = await Promise.all(
           holdings.map(async (holding) => {
             const response = await fetch(
@@ -43,13 +45,12 @@ export default function PerformanceChart() {
 
         const totalValue = currentValues.reduce((sum, value) => sum + value, 0)
 
-        // Generate sample historical data (in real app, you'd fetch historical data)
         const last6Months = Array.from({ length: 6 }, (_, i) => {
           const date = new Date()
           date.setMonth(date.getMonth() - (5 - i))
           return {
             name: date.toLocaleString('default', { month: 'short' }),
-            value: totalValue * (0.9 + Math.random() * 0.2) // Random variation for demo
+            value: totalValue * (0.9 + Math.random() * 0.2)
           }
         })
 
@@ -57,11 +58,12 @@ export default function PerformanceChart() {
         setLoading(false)
       } catch (error) {
         console.error('Error calculating performance data:', error)
+        setLoading(false)
       }
     }
 
     calculateDailyValues()
-    const interval = setInterval(calculateDailyValues, 60000) // Update every minute
+    const interval = setInterval(calculateDailyValues, 60000)
 
     return () => clearInterval(interval)
   }, [])
@@ -92,7 +94,7 @@ export default function PerformanceChart() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Value']} />
+              <Tooltip formatter={(value) => [`$${(value as number).toFixed(2)}`, 'Value']} />
               <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>

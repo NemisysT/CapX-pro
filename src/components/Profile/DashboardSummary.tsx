@@ -94,7 +94,7 @@ export default function DashboardSummary() {
 
   if (loading) return <div>Loading...</div>
   
-  if (!loading && summary.totalHoldings === 0) {
+  if (!loading && (!totalValue || totalValue === 0)) {
     return (
       <Card>
         <CardContent>

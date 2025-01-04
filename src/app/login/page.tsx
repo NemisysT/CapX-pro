@@ -1,9 +1,16 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import { useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { ArrowRight, LineChart, Lock, Mail } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -32,7 +39,6 @@ export default function Login() {
 
       router.push('/dashboard') 
       router.refresh()
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setError('An unexpected error occurred')
     } finally {
@@ -41,68 +47,75 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
-          </h2>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-          {error && (
-            <div className="bg-red-50 text-red-500 p-3 rounded">
-              {error}
-            </div>
-          )}
-          <div className="rounded-md shadow-sm space-y-4">
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-green-100">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <div className="flex items-center justify-center mb-4">
+            <LineChart className="h-12 w-12 text-blue-600" />
           </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
+          <CardTitle className="text-3xl font-bold text-center text-blue-800">Welcome Back</CardTitle>
+          <CardDescription className="text-center text-gray-600">
+            Sign in to manage your stock portfolio
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleLogin}>
+            {error && (
+              <div className="bg-red-50 text-red-500 p-3 rounded-md mb-4">
+                {error}
+              </div>
+            )}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+            <Button className="w-full mt-6" type="submit" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign in'}
-            </button>
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="flex flex-col items-center">
+          <div className="text-sm text-gray-600 mt-2">
+            Don&apos;t have an account?{' '}
+            <Link href="/signup" className="text-blue-600 hover:underline">
+              Sign up
+            </Link>
           </div>
-        </form>
-        <div className="text-center">
-          <Link href="/signup" className="text-indigo-600 hover:text-indigo-500">
-            Don&apos;t have an account? Sign up
-          </Link>
-        </div>
-      </div>
+          <div className="text-xs text-gray-500 mt-4">
+            By signing in, you agree to our Terms of Service and Privacy Policy.
+          </div>
+        </CardFooter>
+      </Card>
     </div>
   )
-}    
+}
+

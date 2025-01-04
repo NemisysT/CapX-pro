@@ -11,7 +11,7 @@ export async function middleware(req: NextRequest) {
   } = await supabase.auth.getSession()
 
   // List of public routes that don't require authentication
-  const publicRoutes = ['/login', '/signup']
+  const publicRoutes = ['/', '/login', '/signup']
   const isPublicRoute = publicRoutes.includes(req.nextUrl.pathname)
 
   // Handle authentication
@@ -28,7 +28,6 @@ export async function middleware(req: NextRequest) {
   return res
 }
 
-// Specify which routes the middleware should run on
 export const config = {
   matcher: [
     /*
@@ -40,4 +39,4 @@ export const config = {
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.png$).*)',
   ],
-}
+} 
