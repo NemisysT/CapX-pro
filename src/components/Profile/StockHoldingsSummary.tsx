@@ -111,7 +111,7 @@ export default function StockHoldingsSummary() {
     const interval = setInterval(fetchHoldingsSummary, 60000) // Update every minute
 
     return () => clearInterval(interval)
-  }, [])
+  }, [FINNHUB_API_KEY, supabase])
 
   if (loading) return <div>Loading...</div>
 

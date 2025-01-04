@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import EmptyStateHandler from "@/components/shared/EmptyStateHandler"
+import { motion, AnimatePresence } from 'framer-motion'
+import { Skeleton } from "@/components/ui/skeleton"
+
 
 interface Transaction {
   id: string
@@ -45,9 +47,24 @@ export default function RecentTransactions() {
     const interval = setInterval(fetchTransactions, 60000) // Update every minute
 
     return () => clearInterval(interval)
-  }, [])
+  }, [supabase])
 
-  if (loading) return <div>Loading...</div>
+  if (loading) {
+    return (
+      <div className="w-full xl:w-2/3 px-6 py-3">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Transactions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {[...Array(5)].map((_, index) => (
+              <Skeleton key={index} className="h-12 w-full mb-2" />
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   if (!loading && transactions.length === 0) {
     return (
@@ -65,31 +82,45 @@ export default function RecentTransactions() {
   }
 
   return (
-    <div className="w-full xl:w-2/3 px-6 py-3">
+    <motion.div 
+      className="w-full xl:w-2/3 px-6 py-3"
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <Card>
         <CardHeader>
           <CardTitle>Recent Transactions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {transactions.map((transaction) => (
-              <div key={transaction.id} className="flex items-center">
-                
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{transaction.symbol}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(transaction.created_at).toLocaleDateString()}
-                  </p>
+          <AnimatePresence>
+            {transactions.map((transaction, index) => (
+              <motion.div 
+                key={transaction.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+                className="flex items-center justify-between py-2 border-b last:border-b-0"
+              >
+                <div className="flex items-center">
+                 
+                  <div>
+                    <p className="text-sm font-medium">{transaction.symbol}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(transaction.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
                 <div className="text-sm font-medium">
                   ${(transaction.quantity * transaction.purchase_price).toFixed(2)}
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </AnimatePresence>
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   )
 }
 

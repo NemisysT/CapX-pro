@@ -42,7 +42,7 @@ export default function StockHoldingsList() {
 
   useEffect(() => {
     fetchHoldings()
-  }, [])
+  })
 
   const handleEdit = (holding: StockHolding) => {
     setEditingId(holding.id)

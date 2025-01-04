@@ -45,10 +45,10 @@ export default function PortfolioOverview() {
     }
 
     fetchPortfolioValue()
-    const interval = setInterval(fetchPortfolioValue, 60000) // Update every minute
+    const interval = setInterval(fetchPortfolioValue, 60000) 
 
     return () => clearInterval(interval)
-  }, [])
+  }, [FINNHUB_API_KEY, supabase])
 
   if (loading) return <div>Loading...</div>
 

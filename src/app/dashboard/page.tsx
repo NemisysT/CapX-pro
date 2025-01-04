@@ -29,7 +29,7 @@ export default function DashboardPage() {
     }
 
     checkHoldings()
-  }, [])
+  }, [supabase])
 
   return (
     <div className="flex h-screen bg-gray-100">

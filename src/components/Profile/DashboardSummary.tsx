@@ -10,11 +10,19 @@ interface StockPerformance {
   percentageChange: number
 }
 
+interface RecentTransaction {
+  id: string
+  symbol: string
+  quantity: number
+  purchase_price: number
+  created_at: string
+}
+
 export default function DashboardSummary() {
   const [totalValue, setTotalValue] = useState(0)
   const [monthlyChange, setMonthlyChange] = useState(0)
   const [topStock, setTopStock] = useState<StockPerformance | null>(null)
-  const [recentTransaction, setRecentTransaction] = useState<any>(null)
+  const [recentTransaction, setRecentTransaction] = useState<RecentTransaction | null>(null)
   const [loading, setLoading] = useState(true)
   
   const supabase = createClientComponentClient()
@@ -90,7 +98,7 @@ export default function DashboardSummary() {
     const interval = setInterval(fetchDashboardData, 60000) // Update every minute
 
     return () => clearInterval(interval)
-  }, [])
+  }, [FINNHUB_API_KEY, supabase])
 
   if (loading) return <div>Loading...</div>
   

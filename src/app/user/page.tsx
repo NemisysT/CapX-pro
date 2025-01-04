@@ -36,7 +36,7 @@ export default function UserProfilePage() {
     }
 
     checkHoldings()
-  }, [])
+  }, [supabase])
 
   if (loading) {
     return <div>Loading...</div>

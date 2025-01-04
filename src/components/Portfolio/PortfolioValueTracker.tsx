@@ -162,7 +162,7 @@ export default function PortfolioValueTracker() {
         socketRef.current.close()
       }
     }
-  }, [])
+  })
 
   useEffect(() => {
     const newTotalValue = holdings.reduce((total, holding) =>

@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import EmptyStateHandler from "@/components/shared/EmptyStateHandler"
+import { motion } from 'framer-motion'
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface ChartData {
   name: string
@@ -66,9 +68,22 @@ export default function PerformanceChart() {
     const interval = setInterval(calculateDailyValues, 60000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [FINNHUB_API_KEY, supabase])
 
-  if (loading) return <div>Loading...</div>
+  if (loading) {
+    return (
+      <div className="w-full xl:w-2/3 px-6 py-3">
+        <Card className="h-[400px]">
+          <CardHeader>
+            <CardTitle>Portfolio Performance</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[350px]">
+            <Skeleton className="w-full h-full" />
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   if (!loading && chartData.length === 0) {
     return (
@@ -83,7 +98,12 @@ export default function PerformanceChart() {
   }
 
   return (
-    <div className="w-full xl:w-2/3 px-6 py-3">
+    <motion.div 
+      className="w-full xl:w-2/3 px-6 py-3"
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <Card className="h-[400px] shadow-md border rounded-lg">
         <CardHeader>
           <CardTitle>Portfolio Performance</CardTitle>
@@ -94,12 +114,23 @@ export default function PerformanceChart() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip formatter={(value) => [`$${(value as number).toFixed(2)}`, 'Value']} />
-              <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={2} />
+              <Tooltip 
+                formatter={(value) => [`$${(value as number).toFixed(2)}`, 'Value']}
+                contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderRadius: '4px' }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="value" 
+                stroke="#8884d8" 
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                activeDot={{ r: 8 }}
+              />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   )
 }
+

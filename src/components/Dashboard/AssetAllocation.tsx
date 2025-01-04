@@ -65,7 +65,7 @@ export default function AssetAllocation() {
     const interval = setInterval(calculateAllocation, 60000) // Update every minute
 
     return () => clearInterval(interval)
-  }, [])
+  }, [FINNHUB_API_KEY, supabase])
 
   if (loading) return <div>Loading...</div>
 
