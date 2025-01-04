@@ -14,14 +14,9 @@ interface StockHolding {
   currentPrice?: number
 }
 
-interface TradeData {
-  data: Array<{
-    p: number
-    s: string
-    t: number
-    v: number
-  }>
-  type: string
+interface Trade {
+  s: string  // symbol
+  p: number  // price
 }
 
 export default function PortfolioValueTracker() {
@@ -77,58 +72,104 @@ export default function PortfolioValueTracker() {
       socketRef.current.close()
     }
 
-    const ws = new WebSocket(`wss://ws.finnhub.io?token=${FINNHUB_API_KEY}`)
-    socketRef.current = ws
+    try {
+      const ws = new WebSocket(`wss://ws.finnhub.io?token=${FINNHUB_API_KEY}`)
+      socketRef.current = ws
 
-    ws.addEventListener('open', () => {
-      console.log('WebSocket connected')
-      stockHoldings.forEach((holding) => {
-        ws.send(JSON.stringify({
-          type: 'subscribe',
-          symbol: holding.symbol
-        }))
+      let connectionAttempts = 0
+      const maxAttempts = 3
+
+      ws.addEventListener('open', () => {
+        console.log('WebSocket connected')
+        connectionAttempts = 0
+        
+        // Subscribe one by one with delay to avoid rate limiting
+        stockHoldings.forEach((holding, index) => {
+          setTimeout(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({
+                type: 'subscribe',
+                symbol: holding.symbol
+              }))
+            }
+          }, index * 500) // 500ms delay between each subscription
+        })
       })
-    })
 
-    ws.addEventListener('message', (event) => {
-      try {
-        const message: TradeData = JSON.parse(event.data)
-        if (message.type === 'trade' && message.data.length > 0) {
-          setHoldings(prevHoldings => {
-            return prevHoldings.map(holding => {
-              const matchingTrade = message.data.find(trade => trade.s === holding.symbol)
-              if (matchingTrade) {
-                console.log(`Updating ${holding.symbol} price to ${matchingTrade.p}`)
-                return {
-                  ...holding,
-                  currentPrice: matchingTrade.p
+      ws.addEventListener('message', (event) => {
+        try {
+          const message = JSON.parse(event.data)
+          if (message.type === 'trade' && message.data?.length > 0) {
+            setHoldings(prevHoldings => {
+              return prevHoldings.map(holding => {
+                const matchingTrade = message.data.find((trade: Trade) => trade.s === holding.symbol)
+                if (matchingTrade) {
+                  return {
+                    ...holding,
+                    currentPrice: matchingTrade.p
+                  }
                 }
-              }
-              return holding
+                return holding
+              })
             })
-          })
+          }
+        } catch (error) {
+          console.error('Error processing message:', error)
         }
-      } catch (error) {
-        console.error('Error processing message:', error)
-      }
-    })
+      })
 
-    ws.addEventListener('error', (event) => {
-      console.error('WebSocket error:', event)
-      // Don't set error state as we still have initial prices
-    })
-
-    ws.addEventListener('close', () => {
-      console.log('WebSocket disconnected')
-      // Attempt to reconnect after 5 seconds
-      setTimeout(() => {
-        if (stockHoldings.length > 0) {
-          initializeWebSocket(stockHoldings)
+      ws.addEventListener('error', (event) => {
+        console.error('WebSocket error:', event)
+        connectionAttempts++
+        
+        if (connectionAttempts >= maxAttempts) {
+          console.log('Falling back to REST API updates')
+          if (ws) ws.close()
+          // Start periodic REST API updates
+          const interval = setInterval(() => updatePricesViaREST(stockHoldings), 10000)
+          return () => clearInterval(interval)
         }
-      }, 5000)
-    })
+      })
 
-    return ws
+      ws.addEventListener('close', () => {
+        console.log('WebSocket disconnected')
+        if (connectionAttempts < maxAttempts) {
+          setTimeout(() => {
+            if (stockHoldings.length > 0) {
+              initializeWebSocket(stockHoldings)
+            }
+          }, 5000)
+        }
+      })
+
+      return ws
+    } catch (error) {
+      console.error('Error creating WebSocket:', error)
+      // Fall back to REST API updates
+      const interval = setInterval(() => updatePricesViaREST(stockHoldings), 10000)
+      return () => clearInterval(interval)
+    }
+  }
+
+  // Add this function for REST API fallback
+  const updatePricesViaREST = async (stockHoldings: StockHolding[]) => {
+    try {
+      const updatedHoldings = await Promise.all(
+        stockHoldings.map(async (holding) => {
+          const response = await fetch(
+            `https://finnhub.io/api/v1/quote?symbol=${holding.symbol}&token=${FINNHUB_API_KEY}`
+          )
+          const data = await response.json()
+          return {
+            ...holding,
+            currentPrice: data.c || holding.currentPrice || holding.purchase_price
+          }
+        })
+      )
+      setHoldings(updatedHoldings)
+    } catch (error) {
+      console.error('Error updating prices via REST:', error)
+    }
   }
 
   useEffect(() => {
@@ -152,7 +193,7 @@ export default function PortfolioValueTracker() {
     initialize()
 
     return () => {
-      if (socketRef.current) {
+      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
         holdings.forEach((holding) => {
           socketRef.current?.send(JSON.stringify({
             type: 'unsubscribe',
@@ -162,7 +203,7 @@ export default function PortfolioValueTracker() {
         socketRef.current.close()
       }
     }
-  })
+  }, [])
 
   useEffect(() => {
     const newTotalValue = holdings.reduce((total, holding) =>
