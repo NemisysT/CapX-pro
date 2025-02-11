@@ -1,9 +1,10 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import EmptyStateHandler from "@/components/shared/EmptyStateHandler"
 
 export default function PortfolioOverview() {
@@ -16,20 +17,19 @@ export default function PortfolioOverview() {
   useEffect(() => {
     const fetchPortfolioValue = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
         if (!user) return
 
-        const { data: holdings } = await supabase
-          .from('stock_holdings')
-          .select('*')
-          .eq('user_id', user.id)
+        const { data: holdings } = await supabase.from("stock_holdings").select("*").eq("user_id", user.id)
 
         if (!holdings) return
 
         let currentTotal = 0
         for (const holding of holdings) {
           const response = await fetch(
-            `https://finnhub.io/api/v1/quote?symbol=${holding.symbol}&token=${FINNHUB_API_KEY}`
+            `https://finnhub.io/api/v1/quote?symbol=${holding.symbol}&token=${FINNHUB_API_KEY}`,
           )
           const data = await response.json()
           const currentPrice = data.c || holding.purchase_price
@@ -40,12 +40,12 @@ export default function PortfolioOverview() {
         setPreviousValue(currentTotal * 0.95) // Simplified: using 95% of current value as previous
         setLoading(false)
       } catch (error) {
-        console.error('Error fetching portfolio value:', error)
+        console.error("Error fetching portfolio value:", error)
       }
     }
 
     fetchPortfolioValue()
-    const interval = setInterval(fetchPortfolioValue, 60000) 
+    const interval = setInterval(fetchPortfolioValue, 60000)
 
     return () => clearInterval(interval)
   }, [FINNHUB_API_KEY, supabase])
@@ -67,15 +67,31 @@ export default function PortfolioOverview() {
   const percentageChange = ((totalValue - previousValue) / previousValue) * 100
 
   return (
-    <div className="w-full md:w-1/2 xl:w-1/3 px-6 py-3">
-      <Card>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card className="bg-gradient-to-br from-gray-900 to-gray-800 text-white shadow-lg border border-gray-700">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Portfolio Value</CardTitle>
+          <CardTitle className="text-sm font-medium text-gray-300">Total Portfolio Value</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">${totalValue.toFixed(2)}</div>
-          <p className="text-xs text-muted-foreground">
-            <span className={`flex items-center ${percentageChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+          <motion.div
+            className="text-3xl font-bold"
+            initial={{ scale: 0.5 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+          >
+            ${totalValue.toFixed(2)}
+          </motion.div>
+          <motion.p
+            className="text-xs text-gray-400 mt-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <span className={`flex items-center ${percentageChange >= 0 ? "text-green-400" : "text-red-400"}`}>
               {percentageChange >= 0 ? (
                 <ArrowUpRight className="mr-1 h-4 w-4" />
               ) : (
@@ -84,10 +100,9 @@ export default function PortfolioOverview() {
               {Math.abs(percentageChange).toFixed(2)}%
             </span>
             From last month
-          </p>
+          </motion.p>
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   )
 }
-

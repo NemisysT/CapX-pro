@@ -9,6 +9,7 @@ import PerformanceChart from '@/components/Dashboard/PerformanceChart'
 import AssetAllocation from '@/components/Dashboard/AssetAllocation'
 import RecentTransactions from '@/components/Dashboard/RecentTransaction'
 import EmptyStateHandler from '@/components/shared/EmptyStateHandler'
+import { motion } from 'framer-motion'
 
 export default function DashboardPage() {
   const [hasHoldings, setHasHoldings] = useState<boolean | null>(null)
@@ -32,33 +33,53 @@ export default function DashboardPage() {
   }, [supabase])
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
-          <div className="container mx-auto px-6 py-8">
-            {hasHoldings === false ? (
-              <div className="bg-white rounded-lg shadow p-6">
-                <EmptyStateHandler 
-                  title="Welcome to Your Investment Dashboard!"
-                  message="Get started by adding your first stock to track your portfolio."
-                />
-              </div>
-            ) : (
-              <>
-                <h3 className="text-gray-700 text-3xl font-medium">Dashboard</h3>
-                <div className="mt-4">
-                  <div className="flex flex-wrap -mx-6">
-                    <PortfolioOverview />
-                    <PerformanceChart />
-                    <AssetAllocation />
-                    <RecentTransactions />
-                  </div>
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-8">
+          {hasHoldings === false ? (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="max-w-4xl mx-auto bg-gray-800 rounded-lg shadow-lg p-8 border border-gray-700"
+            >
+              <EmptyStateHandler 
+                title="Welcome to Your Investment Dashboard!"
+                message="Get started by adding your first stock to track your portfolio."
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="max-w-[1600px] mx-auto"
+            >
+              <h3 className="text-gray-100 text-3xl font-medium mb-8 px-4">Dashboard</h3>
+              
+              {/* Top Row */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8 px-4">
+                <div className="lg:col-span-4">
+                  <PortfolioOverview />
                 </div>
-              </>
-            )}
-          </div>
+                <div className="lg:col-span-8">
+                  <PerformanceChart />
+                </div>
+              </div>
+              
+              {/* Bottom Row */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 px-4">
+                <div className="lg:col-span-4">
+                  <AssetAllocation />
+                </div>
+                <div className="lg:col-span-8">
+                  <RecentTransactions />
+                </div>
+              </div>
+            </motion.div>
+          )}
         </main>
       </div>
     </div>

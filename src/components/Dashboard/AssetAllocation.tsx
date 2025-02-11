@@ -1,12 +1,13 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import EmptyStateHandler from "@/components/shared/EmptyStateHandler"
+import { motion } from "framer-motion"
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042']
+const COLORS = ["#60A5FA", "#34D399", "#FBBF24", "#F87171"]
 
 interface AllocationData {
   name: string
@@ -22,13 +23,12 @@ export default function AssetAllocation() {
   useEffect(() => {
     const calculateAllocation = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
         if (!user) return
 
-        const { data: holdings } = await supabase
-          .from('stock_holdings')
-          .select('*')
-          .eq('user_id', user.id)
+        const { data: holdings } = await supabase.from("stock_holdings").select("*").eq("user_id", user.id)
 
         if (!holdings || holdings.length === 0) return
 
@@ -36,14 +36,14 @@ export default function AssetAllocation() {
         const holdingValues = await Promise.all(
           holdings.map(async (holding) => {
             const response = await fetch(
-              `https://finnhub.io/api/v1/quote?symbol=${holding.symbol}&token=${FINNHUB_API_KEY}`
+              `https://finnhub.io/api/v1/quote?symbol=${holding.symbol}&token=${FINNHUB_API_KEY}`,
             )
             const data = await response.json()
             return {
               symbol: holding.symbol,
-              value: holding.quantity * (data.c || holding.purchase_price)
+              value: holding.quantity * (data.c || holding.purchase_price),
             }
-          })
+          }),
         )
 
         const totalValue = holdingValues.reduce((sum, { value }) => sum + value, 0)
@@ -51,13 +51,13 @@ export default function AssetAllocation() {
         // Group by stock symbol
         const stockAllocation = holdingValues.map(({ symbol, value }) => ({
           name: symbol,
-          value: (value / totalValue) * 100
+          value: (value / totalValue) * 100,
         }))
 
         setAllocationData(stockAllocation)
         setLoading(false)
       } catch (error) {
-        console.error('Error calculating asset allocation:', error)
+        console.error("Error calculating asset allocation:", error)
       }
     }
 
@@ -82,10 +82,14 @@ export default function AssetAllocation() {
   }
 
   return (
-    <div className="w-full md:w-1/2 xl:w-1/3 px-6 py-3">
-      <Card className="h-[400px] shadow-md border rounded-lg">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.2 }}
+    >
+      <Card className="h-[400px] shadow-lg border border-gray-700 bg-gradient-to-br from-gray-900 to-gray-800 text-white">
         <CardHeader>
-          <CardTitle>Asset Allocation</CardTitle>
+          <CardTitle className="text-gray-300">Asset Allocation</CardTitle>
         </CardHeader>
         <CardContent className="h-[350px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -100,15 +104,20 @@ export default function AssetAllocation() {
                 dataKey="value"
                 label={({ name, value }) => `${name} ${value.toFixed(1)}%`}
               >
-                {allocationData.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                {allocationData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} strokeWidth={2} stroke="#1F2937" />
                 ))}
               </Pie>
-              <Legend />
+              <Legend
+                formatter={(value, entry, index) => (
+                  <span style={{ color: COLORS[index % COLORS.length] }}>{value}</span>
+                )}
+              />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   )
 }
+
