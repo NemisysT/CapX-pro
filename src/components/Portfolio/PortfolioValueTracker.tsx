@@ -232,7 +232,7 @@ export default function PortfolioValueTracker() {
   }
 
   if (loading) {
-    return <div>Loading portfolio data...</div>
+    return <div className="text-red-500">Loading portfolio data...</div>
   }
 
   if (error) {
@@ -244,23 +244,23 @@ export default function PortfolioValueTracker() {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Total Portfolio Value</CardTitle>
+    <div className="space-y-6 bg-gradient-to-br from-gray-900 to-gray-800 text-white shadow-lg rounded-lg p-4">
+      <Card className="bg-gray-700 border-none">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-2xl font-semibold text-silver-500">Total Portfolio Value</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-4xl font-bold">${totalValue.toFixed(2)}</div>
+          <div className="text-4xl font-bold text-silver-300">${totalValue.toFixed(2)}</div>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-gray-700 border-none">
         <CardHeader>
-          <CardTitle>Holdings</CardTitle>
+          <CardTitle className="text-2xl font-semibold text-silver-500">Holdings</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
-            <TableHeader>
+            <TableHeader className="text-silver-400">
               <TableRow>
                 <TableHead>Symbol</TableHead>
                 <TableHead>Quantity</TableHead>
@@ -278,13 +278,13 @@ export default function PortfolioValueTracker() {
                 const gainLossPercentage = ((gainLoss / (holding.quantity * holding.purchase_price)) * 100)
 
                 return (
-                  <TableRow key={holding.id}>
-                    <TableCell>{holding.symbol}</TableCell>
+                  <TableRow key={holding.id} className="hover:bg-gray-600">
+                    <TableCell className="font-medium">{holding.symbol}</TableCell>
                     <TableCell>{holding.quantity}</TableCell>
                     <TableCell>${holding.purchase_price.toFixed(2)}</TableCell>
                     <TableCell>${currentPrice.toFixed(2)}</TableCell>
                     <TableCell>${value.toFixed(2)}</TableCell>
-                    <TableCell className={gainLoss >= 0 ? 'text-green-600' : 'text-red-600'}>
+                    <TableCell className={gainLoss >= 0 ? 'text-green-400' : 'text-red-400'}>
                       ${gainLoss.toFixed(2)} ({gainLossPercentage.toFixed(2)}%)
                     </TableCell>
                   </TableRow>

@@ -32,9 +32,9 @@ export default function UserInfo() {
   }, [supabase.auth])
 
   return (
-    <Card>
+    <Card className="bg-gradient-to-r from-gray-800 to-gray-600 shadow-lg rounded-lg p-4">
       <CardHeader>
-        <CardTitle>User Information</CardTitle>
+        <CardTitle className="text-white">User Information</CardTitle>
       </CardHeader>
       <CardContent className="flex items-center space-x-4">
         <Avatar className="h-20 w-20">
@@ -46,12 +46,10 @@ export default function UserInfo() {
           </AvatarFallback>
         </Avatar>
         <div>
-          <h4 className="text-xl font-semibold">{userProfile.fullName || 'Loading...'}</h4>
-          <p className="text-gray-500">{userProfile.email || 'Loading...'}</p>
-          
+          <h4 className="text-xl font-semibold text-white">{userProfile.fullName || 'Loading...'}</h4>
+          <p className="text-gray-300">{userProfile.email || 'Loading...'}</p>
         </div>
       </CardContent>
     </Card>
   )
 }
-

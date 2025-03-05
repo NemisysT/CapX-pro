@@ -80,21 +80,20 @@ export default function PortfolioValueSummary() {
     return () => clearInterval(interval)
   }, [FINNHUB_API_KEY, supabase])
 
-  if (loading) return <div>Loading...</div>
+  if (loading) return <div className="text-white">Loading...</div>
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Portfolio Value Summary</CardTitle>
+    <Card className="bg-gradient-to-r from-gray-800 to-gray-600 shadow-lg rounded-lg p-4">
+      <CardHeader className="border-b border-gray-400">
+        <CardTitle className="text-xl font-bold text-white">Portfolio Value Summary</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="text-white">
         <div className="space-y-2">
           <p><strong>Current Total Value:</strong> ${stats.currentValue.toFixed(2)}</p>
           <p>
-            <strong>Today&apos;s Change:</strong> 
-            <span className={stats.dailyChange >= 0 ? 'text-green-600' : 'text-red-600'}>
-              ${stats.dailyChange.toFixed(2)} ({stats.dailyChangePercent >= 0 ? '+' : ''}
-              {stats.dailyChangePercent.toFixed(2)}%)
+            <strong>Today's Change:</strong> 
+            <span className={stats.dailyChange >= 0 ? 'text-green-400' : 'text-red-400'}>
+              ${stats.dailyChange.toFixed(2)} ({stats.dailyChangePercent >= 0 ? '+' : ''}{stats.dailyChangePercent.toFixed(2)}%)
             </span>
           </p>
           <p><strong>All-Time High:</strong> ${stats.highValue.toFixed(2)}</p>
@@ -106,4 +105,3 @@ export default function PortfolioValueSummary() {
     </Card>
   )
 }
-

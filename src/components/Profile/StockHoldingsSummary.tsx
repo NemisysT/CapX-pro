@@ -6,18 +6,9 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 interface HoldingSummary {
   totalHoldings: number
-  mostValuableHolding: {
-    symbol: string
-    percentage: number
-  } | null
-  recentlyAdded: {
-    symbol: string
-    quantity: number
-  } | null
-  bestPerformer: {
-    symbol: string
-    percentage: number
-  } | null
+  mostValuableHolding: { symbol: string; percentage: number } | null
+  recentlyAdded: { symbol: string; quantity: number } | null
+  bestPerformer: { symbol: string; percentage: number } | null
 }
 
 export default function StockHoldingsSummary() {
@@ -28,7 +19,7 @@ export default function StockHoldingsSummary() {
     bestPerformer: null
   })
   const [loading, setLoading] = useState(true)
-  
+
   const supabase = createClientComponentClient()
   const FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY
 
@@ -58,7 +49,7 @@ export default function StockHoldingsSummary() {
             const currentPrice = data.c || holding.purchase_price
             const value = holding.quantity * currentPrice
             const percentageChange = ((currentPrice - holding.purchase_price) / holding.purchase_price) * 100
-            
+
             return {
               ...holding,
               currentValue: value,
@@ -70,17 +61,17 @@ export default function StockHoldingsSummary() {
         const totalValue = holdingsData.reduce((sum, h) => sum + h.currentValue, 0)
 
         // Find most valuable holding
-        const mostValuable = holdingsData.reduce((prev, current) => 
+        const mostValuable = holdingsData.reduce((prev, current) =>
           prev.currentValue > current.currentValue ? prev : current
         )
 
         // Find best performer
-        const bestPerformer = holdingsData.reduce((prev, current) => 
+        const bestPerformer = holdingsData.reduce((prev, current) =>
           prev.percentageChange > current.percentageChange ? prev : current
         )
 
         // Get most recently added
-        const recentlyAdded = holdings.reduce((prev, current) => 
+        const recentlyAdded = holdings.reduce((prev, current) =>
           new Date(current.created_at) > new Date(prev.created_at) ? current : prev
         )
 
@@ -113,34 +104,33 @@ export default function StockHoldingsSummary() {
     return () => clearInterval(interval)
   }, [FINNHUB_API_KEY, supabase])
 
-  if (loading) return <div>Loading...</div>
+  if (loading) return <div className="text-white">Loading...</div>
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Stock Holdings Summary</CardTitle>
+    <Card className="bg-gradient-to-r from-gray-800 to-gray-600 shadow-lg rounded-lg p-4">
+      <CardHeader className="border-b border-gray-400">
+        <CardTitle className="text-xl font-bold text-white">Stock Holdings Summary</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="text-white">
         <div className="space-y-2">
           <p><strong>Total Holdings:</strong> {summary.totalHoldings} stocks</p>
           {summary.mostValuableHolding && (
-            <p><strong>Most Valuable Holding:</strong> {summary.mostValuableHolding.symbol} ({summary.mostValuableHolding.percentage.toFixed(1)}% of portfolio)</p>
-          )}
-          {summary.recentlyAdded && (
-            <p><strong>Recently Added:</strong> {summary.recentlyAdded.symbol} ({summary.recentlyAdded.quantity} shares)</p>
-          )}
-          {summary.bestPerformer && (
             <p>
-              <strong>Best Performer:</strong> {summary.bestPerformer.symbol} (
-              <span className="text-green-600">
-                +{summary.bestPerformer.percentage.toFixed(2)}% since purchase
-              </span>
-              )
+              <strong>Most Valuable Holding:</strong> {summary.mostValuableHolding.symbol} ({summary.mostValuableHolding.percentage.toFixed(1)}% of portfolio)
             </p>
           )}
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
+          {summary.recentlyAdded && (
+                        <p>
+                        <strong>Recently Added:</strong> {summary.recentlyAdded.symbol} ({summary.recentlyAdded.quantity} shares)
+                      </p>
+                    )}
+                    {summary.bestPerformer && (
+                      <p>
+                        <strong>Best Performer:</strong> {summary.bestPerformer.symbol} ({summary.bestPerformer.percentage.toFixed(1)}% change)
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          }
