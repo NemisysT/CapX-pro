@@ -51,7 +51,7 @@ export default function RecentTransaction() {
   if (loading) {
     return (
       <div className="w-full md:w-2/3 xl:w-1/3 px-4 py-4">
-        <Card className="bg-gray-900 border border-gray-700 shadow-lg rounded-xl text-gray-300">
+        <Card className="bg-gradient-to-br from-black via-gray-800 to-gray-900 border border-gray-700 shadow-lg rounded-xl text-gray-300">
           <CardHeader className="p-6">
             <CardTitle>Recent Transactions</CardTitle>
           </CardHeader>
@@ -68,7 +68,7 @@ export default function RecentTransaction() {
   if (!loading && transactions.length === 0) {
     return (
       <div className="w-full md:w-2/3 xl:w-1/3 px-4 py-4">
-        <Card className="bg-gray-900 border border-gray-700 shadow-lg rounded-xl text-gray-300">
+        <Card className="bg-gradient-to-br from-black via-gray-800 to-gray-900 border border-gray-700 shadow-lg rounded-xl text-gray-300">
           <CardContent className="p-6 flex items-center justify-center">
             <EmptyStateHandler 
               title="No Recent Transactions"
@@ -86,7 +86,7 @@ export default function RecentTransaction() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.6 }}
     >
-      <Card className="shadow-lg border border-gray-700 bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+      <Card className="shadow-lg border border-gray-700 bg-gradient-to-br from-black via-gray-800 to-gray-900 text-white">
         <CardHeader>
           <CardTitle className="text-gray-300">Recent Transactions</CardTitle>
         </CardHeader>
