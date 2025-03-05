@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { motion } from 'framer-motion'
 
 const AVAILABLE_STOCKS = [
   { symbol: 'AAPL', name: 'Apple Inc.' },
@@ -58,14 +59,20 @@ export default function AddStockHoldingForm({ onStockAdded }: { onStockAdded: ()
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <motion.form 
+      onSubmit={handleSubmit} 
+      className="space-y-4 bg-gradient-to-br from-black via-gray-800 to-gray-900 p-6 rounded-lg shadow-lg"
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <div>
-        <Label htmlFor="symbol">Stock</Label>
+        <Label htmlFor="symbol" className="text-gray-300">Stock</Label>
         <Select value={symbol} onValueChange={setSymbol}>
-          <SelectTrigger>
+          <SelectTrigger className="bg-gray-700 text-gray-300">
             <SelectValue placeholder="Select a stock" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-gray-700 text-gray-300">
             {AVAILABLE_STOCKS.map((stock) => (
               <SelectItem key={stock.symbol} value={stock.symbol}>
                 {stock.symbol} - {stock.name}
@@ -75,17 +82,18 @@ export default function AddStockHoldingForm({ onStockAdded }: { onStockAdded: ()
         </Select>
       </div>
       <div>
-        <Label htmlFor="quantity">Quantity</Label>
+        <Label htmlFor="quantity" className="text-gray-300">Quantity</Label>
         <Input
           id="quantity"
           type="number"
           value={quantity}
           onChange={(e) => setQuantity(e.target.value)}
           required
+          className="bg-gray-700 text-gray-300"
         />
       </div>
       <div>
-        <Label htmlFor="purchasePrice">Purchase Price ($)</Label>
+        <Label htmlFor="purchasePrice" className="text-gray-300">Purchase Price ($)</Label>
         <Input
           id="purchasePrice"
           type="number"
@@ -93,12 +101,13 @@ export default function AddStockHoldingForm({ onStockAdded }: { onStockAdded: ()
           value={purchasePrice}
           onChange={(e) => setPurchasePrice(e.target.value)}
           required
+          className="bg-gray-700 text-gray-300"
         />
       </div>
-      <Button type="submit" disabled={loading}>
+      <Button type="submit" disabled={loading} className="bg-gray-700 text-gray-300 hover:bg-gray-600">
         {loading ? 'Adding...' : 'Add Stock Holding'}
       </Button>
-    </form>
+    </motion.form>
   )
 }
 
