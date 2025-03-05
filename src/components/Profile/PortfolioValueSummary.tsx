@@ -91,7 +91,7 @@ export default function PortfolioValueSummary() {
         <div className="space-y-2">
           <p><strong>Current Total Value:</strong> ${stats.currentValue.toFixed(2)}</p>
           <p>
-            <strong>Today's Change:</strong> 
+            <strong>Today&apos;s Change:</strong> 
             <span className={stats.dailyChange >= 0 ? 'text-green-400' : 'text-red-400'}>
               ${stats.dailyChange.toFixed(2)} ({stats.dailyChangePercent >= 0 ? '+' : ''}{stats.dailyChangePercent.toFixed(2)}%)
             </span>

@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowRight, BarChart2, DollarSign, Edit3, PieChart, Cpu, Layers, Zap } from 'lucide-react'
+import { ArrowRight, BarChart2, DollarSign, Edit3, PieChart, Cpu, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';

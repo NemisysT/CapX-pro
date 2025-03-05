@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,8 +25,9 @@ export default function StockHoldingsList() {
 
   const supabase = createClientComponentClient()
 
-  const fetchHoldings = async () => {
+  const fetchHoldings = useCallback(async () => {
     try {
+      setLoading(true)
       const { data, error } = await supabase
         .from('stock_holdings')
         .select('*')
@@ -39,11 +40,11 @@ export default function StockHoldingsList() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [supabase])
 
   useEffect(() => {
     fetchHoldings()
-  }, [])
+  }, [fetchHoldings])
 
   const handleEdit = (holding: StockHolding) => {
     setEditingId(holding.id)
@@ -64,7 +65,6 @@ export default function StockHoldingsList() {
         .eq('id', id)
 
       if (error) throw error
-      
       fetchHoldings()
       setEditingId(null)
     } catch (error) {
@@ -80,7 +80,6 @@ export default function StockHoldingsList() {
         .eq('id', id)
 
       if (error) throw error
-      
       fetchHoldings()
     } catch (error) {
       console.error('Error deleting holding:', error)
@@ -88,7 +87,7 @@ export default function StockHoldingsList() {
   }
 
   if (loading) {
-    return <div>Loading...</div>
+    return <div className="text-gray-300">Loading...</div>
   }
 
   return (
@@ -119,7 +118,7 @@ export default function StockHoldingsList() {
                     value={editForm.quantity}
                     onChange={(e) => setEditForm({
                       ...editForm,
-                      quantity: parseInt(e.target.value)
+                      quantity: parseInt(e.target.value) || 0
                     })}
                     className="w-20 bg-gray-700 text-gray-300"
                   />
@@ -135,7 +134,7 @@ export default function StockHoldingsList() {
                     value={editForm.purchase_price}
                     onChange={(e) => setEditForm({
                       ...editForm,
-                      purchase_price: parseFloat(e.target.value)
+                      purchase_price: parseFloat(e.target.value) || 0
                     })}
                     className="w-24 bg-gray-700 text-gray-300"
                   />
@@ -166,4 +165,3 @@ export default function StockHoldingsList() {
     </motion.div>
   )
 }
-
